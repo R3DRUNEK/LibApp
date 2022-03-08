@@ -104,6 +104,7 @@ namespace LibApp.Controllers
         }
         
         [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Authorize]
         [Microsoft.AspNetCore.Mvc.Route("api/books")]
         public IList<Book> GetBooks()
         {
@@ -111,6 +112,7 @@ namespace LibApp.Controllers
         }
         
         [Microsoft.AspNetCore.Mvc.HttpDelete]
+        [Authorize(Roles = "StoreManager, User")]
         [Microsoft.AspNetCore.Mvc.Route("api/books/{id}")]
         public Book DeleteBook(int id)
         {
@@ -125,6 +127,7 @@ namespace LibApp.Controllers
         }
         
         [Microsoft.AspNetCore.Mvc.HttpPut]
+        [Authorize(Roles = "StoreManager, User")]
         [Microsoft.AspNetCore.Mvc.Route("api/books/{id}")]
         public void Update(int id, BookDto bookDto)
         {
@@ -143,6 +146,7 @@ namespace LibApp.Controllers
         }
         
         [Microsoft.AspNetCore.Mvc.HttpPost]
+        [Authorize(Roles = "StoreManager, User")]
         [Microsoft.AspNetCore.Mvc.Route("api/books")]
         public Book Add(Book bookDto)
         {
