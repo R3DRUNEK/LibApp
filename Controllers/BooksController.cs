@@ -2,11 +2,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using System.Web.Http;
+using AutoMapper;
 using LibApp.Interfaces;
 using LibApp.Models;
 using LibApp.ViewModels;
 using LibApp.Data;
+using LibApp.Dtos;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibApp.Controllers
@@ -15,11 +20,13 @@ namespace LibApp.Controllers
     {
         private readonly IBookRepository _bookRepository;
         private readonly IGenreRepository _genreRepository;
+        private IMapper _mapper;
         
-        public BooksController(IGenreRepository genreRepository, IBookRepository bookRepository)
+        public BooksController(IGenreRepository genreRepository, IBookRepository bookRepository, IMapper mapper)
         {
             _genreRepository = genreRepository;
             _bookRepository = bookRepository;
+            _mapper = mapper;
         }
 
         public IActionResult Index()
@@ -65,7 +72,7 @@ namespace LibApp.Controllers
             return View("BookForm", viewModel);
         }
 
-        [HttpPost]
+        [Microsoft.AspNetCore.Mvc.HttpPost]
         public IActionResult Save(Book book)
         {
             if (book.Id == 0)
@@ -95,5 +102,62 @@ namespace LibApp.Controllers
 
             return RedirectToAction("Index", "Books");
         }
+        
+        [Microsoft.AspNetCore.Mvc.HttpGet]
+        [Microsoft.AspNetCore.Mvc.Route("api/books")]
+        public IList<Book> GetBooks()
+        {
+            return _bookRepository.GetBooks().ToList();
+        }
+        
+        [Microsoft.AspNetCore.Mvc.HttpDelete]
+        [Microsoft.AspNetCore.Mvc.Route("api/books/{id}")]
+        public Book DeleteBook(int id)
+        {
+            Book book = _bookRepository.Get(id);
+            if (book != null)
+            {
+                _bookRepository.Remove(id);
+                _bookRepository.Save();
+                return book;
+            }
+            throw new HttpResponseException(HttpStatusCode.NotFound);
+        }
+        
+        [Microsoft.AspNetCore.Mvc.HttpPut]
+        [Microsoft.AspNetCore.Mvc.Route("api/books/{id}")]
+        public void Update(int id, BookDto bookDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                throw new HttpResponseException(HttpStatusCode.BadRequest);
+            }
+            var book = _bookRepository.Get(id);
+            if (book == null)
+            {
+                throw new HttpResponseException(HttpStatusCode.NotFound);
+            }
+            _mapper.Map(bookDto, book);
+
+            _bookRepository.Save();
+        }
+        
+        [Microsoft.AspNetCore.Mvc.HttpPost]
+        [Microsoft.AspNetCore.Mvc.Route("api/books")]
+        public Book Add(Book bookDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                throw new HttpResponseException(HttpStatusCode.NotAcceptable);
+            }
+            var book = _mapper.Map<Book>(bookDto);
+            _bookRepository.Add(book);
+            _bookRepository.Save();
+            bookDto.Id = book.Id;
+
+            return book;
+        }
+        
+
     }
 }
