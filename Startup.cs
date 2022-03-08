@@ -11,6 +11,8 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using LibApp.Repositories;
+using LibApp.Interfaces;
 using System.Threading.Tasks;
 
 namespace LibApp
@@ -36,6 +38,7 @@ namespace LibApp
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+            AddRepositories(services);
             services.AddControllersWithViews();
         }
 
@@ -69,5 +72,15 @@ namespace LibApp
                 endpoints.MapRazorPages();
             });
         }
+        
+        public void AddRepositories(IServiceCollection services)
+        {
+            services.AddScoped<IBookRepository, BookRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IGenreRepository, GenreRepository>();
+            services.AddScoped<IMembershipTypeRepository, MembershipTypeRepository>();
+
+        }
+        
     }
 }
